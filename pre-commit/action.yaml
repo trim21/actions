@@ -4,8 +4,9 @@ description: run pre-commit
 runs:
   using: composite
   steps:
-    - name: Get Latest tools version
+    - name: Get Current Python Version
       run: echo "PY=$(python -VV | md5sum | cut -d' ' -f1)" >> $GITHUB_ENV
+      shell: bash
 
     - uses: actions/cache@v3
       with:
