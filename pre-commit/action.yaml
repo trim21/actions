@@ -15,20 +15,7 @@ runs:
         restore-keys: |
           pre-commit-3-${{ env.PY }}-
 
-    - run: pre-commit run --all-files --color=always || true
-      shell: bash
-
-    - uses: reviewdog/action-setup@v1
-      with:
-        reviewdog_version: latest # Optional. [latest,nightly,v.X.Y.Z]
-
-    - run: |
-        if git diff --exit-code ;
-          TMPFILE=$(mktemp)
-          git diff >"${TMPFILE}"
-          git stash -u && git stash drop
-          cat "${TMPFILE}" | reviewdog -f=diff -f.diff.strip=1 -reporter=github-pr-review
-        fi
+    - run: pre-commit run --all-files --show-diff-on-failure --color=always
       shell: bash
 
     - name: Run this action with only post
