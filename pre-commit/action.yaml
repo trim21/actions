@@ -1,0 +1,23 @@
+name: pre-commit
+description: run pre-commit
+
+runs:
+  using: composite
+  steps:
+    - name: Get Latest tools version
+      run: echo "PY=$(python -VV | md5sum | cut -d' ' -f1)" >> $GITHUB_ENV
+
+    - uses: actions/cache@v3
+      with:
+        path: ~/.cache/pre-commit
+        key: pre-commit-3|${{ env.PY }}|${{ hashFiles('.pre-commit-config.yaml') }}
+        restore-keys: |
+          pre-commit-3|${{ env.PY }}|
+
+    - run: pre-commit run --all-files --show-diff-on-failure --color=always
+      shell: bash
+
+    - name: Run this action with only post
+      uses: gacts/run-and-post-run@v1
+      with:
+        post: pre-commit gc
