@@ -1,0 +1,18 @@
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+name = "transmission-rpc"
+version = "4.2.2"
+description = ""
+authors = []
+readme = ''
+license = 'MIT'
+
+[tool.poetry.dependencies]
+python = "^3.7"
+# dependencies
+
+[tool.poetry.group.dev.dependencies]
+pre-commit = { version = "==3.3.1", markers = "implementation_name != 'pypy'", python = "^3.9" }
