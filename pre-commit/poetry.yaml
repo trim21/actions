@@ -1,0 +1,35 @@
+name: pre-pommit
+
+on:
+  workflow_call:
+    inputs:
+      python-version:
+        description: "python version to install"
+        type: "string"
+        required: false
+        default: "3.x"
+
+jobs:
+  build-pkg:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "${{ inputs.python-version }}"
+
+      - name: Get Current Python Version
+        run: echo "PY=$(python -VV | md5sum | cut -d' ' -f1)" >> $GITHUB_ENV
+        shell: bash
+
+      - uses: actions/cache@v3
+        with:
+          path: ~/.cache/pre-commit
+          key: pre-commit-3-${{ env.PY }}-${{ hashFiles('.pre-commit-config.yaml') }}
+          restore-keys: |
+            pre-commit-3-${{ env.PY }}-
+
+      - run: pre-commit run --all-files --show-diff-on-failure --color=always
+
+      - run: pre-commit gc
