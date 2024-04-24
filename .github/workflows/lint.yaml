@@ -20,7 +20,7 @@ jobs:
 
       - uses: trim21/setup-poetry@dist/v2
 
-      - run: poetry config settings.virtualenvs.create false
+      - run: poetry config virtualenvs.create false --local
       - run: poetry install --sync
 
       - uses: ./pre-commit/
