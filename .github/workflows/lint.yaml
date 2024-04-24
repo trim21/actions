@@ -20,9 +20,7 @@ jobs:
 
       - uses: trim21/setup-poetry@dist/v2
 
-      - run: ls
-        shell: bash
-
+      - run: poetry config settings.virtualenvs.create false
       - run: poetry install --sync
 
       - uses: ./pre-commit/
