@@ -20,6 +20,6 @@ jobs:
 
       - uses: trim21/setup-poetry@dist/v2
 
-      - uses: trim21/install-poetry-project@dist/v2
+      - run: poetry install --sync
 
       - uses: ./pre-commit/
