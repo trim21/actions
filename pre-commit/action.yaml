@@ -7,9 +7,9 @@ runs:
     - name: Get Current Python Version
       shell: python
       run: |
-        import hashlib
         import os
         import sys
+        import hashlib
 
         v = hashlib.sha1(sys.version.encode()).hexdigest()
 
