@@ -13,11 +13,8 @@ runs:
 
         v = hashlib.sha1(sys.version.encode()).hexdigest()
 
-        with open(os.environ["GITHUB_ENV"], encoding="utf-8") as f:
-            env = f.read()
-
-        with open(os.environ["GITHUB_ENV"], "w", encoding="utf-8") as f:
-            f.write(env.rstrip("\n") + "\n" + f"PY={v}")
+        with open(os.environ["GITHUB_ENV"], 'a', encoding="utf-8") as f:
+            env = f.write(f"\nPY={v}")
 
     - uses: actions/cache@v4
       with:
