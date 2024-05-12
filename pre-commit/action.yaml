@@ -11,7 +11,7 @@ runs:
         import sys
         import hashlib
 
-        v = hashlib.sha1(sys.version.encode()).hexdigest()
+        v = hashlib.sha3_224(sys.version.encode()).hexdigest()
 
         with open(os.environ["GITHUB_ENV"], 'a+', encoding="utf-8") as f:
             env = f.write(f"\nPY={v}\n")
