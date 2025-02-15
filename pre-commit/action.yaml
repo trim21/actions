@@ -6,6 +6,7 @@ runs:
   steps:
     - name: Get Current Python Version
       shell: python
+      id: py
       run: |
         import os
         import sys
@@ -13,18 +14,22 @@ runs:
 
         v = hashlib.sha3_224(sys.version.encode()).hexdigest()
 
-        with open(os.environ["GITHUB_ENV"], 'a+', encoding="utf-8") as f:
+        with open(os.environ["GITHUB_OUTPUT"], 'a+', encoding="utf-8") as f:
             env = f.write(f"\nPY={v}\n")
 
     - uses: actions/cache@v4
+      id: cache
       with:
         path: ~/.cache/pre-commit
-        key: pre-commit-3-${{ env.PY }}-${{ hashFiles('.pre-commit-config.yaml') }}
+        key: pre-commit-3-${{ steps.py.outputs.PY }}-${{ hashFiles('.pre-commit-config.yaml') }}
         restore-keys: |
-          pre-commit-3-${{ env.PY }}-
+          pre-commit-3-${{ steps.py.outputs.PY }}-
 
     - run: pre-commit run --all-files --show-diff-on-failure --color=always
       shell: bash
 
-    - run: pre-commit gc
-      shell: bash
+    - name: Run this action with only post
+      if: steps.cache.outputs.cache-hit != 'true'
+      uses: gacts/run-and-post-run@v1
+      with:
+        post: pre-commit gc
