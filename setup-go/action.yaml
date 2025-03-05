@@ -21,8 +21,20 @@ runs:
         go-version: ${{ steps.gomod.outputs.toolchain-go-version || steps.gomod.outputs.go }}
         cache: false
 
-    - name: Go Build Cache (${{ inputs.env }})
+    - name: Go Cache
       uses: actions/cache@v4
+      if: ${{ inputs.cache-namespace == ''}}
+      with:
+        path: |
+          ~/.cache/go-build
+          ~/go/pkg
+        key: go-cache-${{ hashFiles('go.mod') }}-${{ hashFiles('go.sum') }}
+        restore-keys: |
+          go-cache-${{ hashFiles('go.mod') }}-
+
+    - name: Go Build Cache (${{ inputs.cache-namespace }})
+      uses: actions/cache@v4
+      if: ${{ inputs.cache-namespace != ''}}
       with:
         path: |
           ~/.cache/go-build
