@@ -13,16 +13,16 @@ runs:
       shell: bash
 
     - id: gomod
-      uses: Arthur1/parse-gomod-action@v0.1.0
+      uses: Arthur1/parse-gomod-action@f8b23275f54183926505e6e09703b01ba9c115e3 # v0.1.0
 
     - name: Install Go
-      uses: actions/setup-go@v5
+      uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b # v5
       with:
         go-version: ${{ steps.gomod.outputs.toolchain-go-version || steps.gomod.outputs.go }}
         cache: false
 
     - name: Go Cache
-      uses: actions/cache@v4
+      uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4
       if: ${{ inputs.cache-namespace == ''}}
       with:
         path: ~/go/pkg
@@ -31,7 +31,7 @@ runs:
           go-cache-${{ hashFiles('go.mod') }}-
 
     - name: Go Build Cache (${{ inputs.cache-namespace }})
-      uses: actions/cache@v4
+      uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4
       if: ${{ inputs.cache-namespace != ''}}
       with:
         path: |
