@@ -13,16 +13,16 @@ runs:
       shell: bash
 
     - id: gomod
-      uses: Arthur1/parse-gomod-action@f8b23275f54183926505e6e09703b01ba9c115e3 # v0.1.0
+      uses: Arthur1/parse-gomod-action@v0.1.0
 
     - name: Install Go
-      uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5
+      uses: actions/setup-go@v5
       with:
         go-version: ${{ steps.gomod.outputs.toolchain-go-version || steps.gomod.outputs.go }}
         cache: false
 
     - name: Go Build Cache
-      uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4
+      uses: actions/cache@v4
       with:
         path: |
           ~/.cache/go-build
