@@ -16,7 +16,7 @@ runs:
       uses: Arthur1/parse-gomod-action@v0.1.0
 
     - name: Install Go
-      uses: actions/setup-go@v5
+      uses: actions/setup-go@v6
       with:
         go-version: ${{ steps.gomod.outputs.toolchain-go-version || steps.gomod.outputs.go }}
         cache: false
