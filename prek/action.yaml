@@ -27,6 +27,8 @@ runs:
         path: ~/.cache/prek
         key: prek-1-${{ hashFiles('.pre-commit-config.yaml') }}
 
+    - uses: astral-sh/setup-uv@v7
+
     - name: Run prek
       shell: bash
       run: prek run --all-files --show-diff-on-failure --color=always
