@@ -22,3 +22,16 @@ jobs:
       - run: pip install pre-commit
       - uses: trim21/actions/pre-commit@master
 ```
+
+## Prek
+
+```yaml
+name: lint
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout
+      - uses: trim21/actions/prek@master
+```
