@@ -1,0 +1,134 @@
+name: "govulncheck"
+description: "run govulncheck and keep a tracking issue in sync with its findings"
+
+inputs:
+  go-tags:
+    description: "comma separated build tags passed to govulncheck"
+    required: false
+    default: ""
+  packages:
+    description: "package patterns to scan"
+    required: false
+    default: "./..."
+  govulncheck-version:
+    description: "version of golang.org/x/vuln to install, empty means latest"
+    required: false
+    default: ""
+  report-issues:
+    description: "create/update/close the tracking issue, only enable it on the default branch"
+    required: false
+    default: "false"
+  issue-title:
+    description: "title of the tracking issue, also used to locate it"
+    required: false
+    default: "govulncheck: known vulnerabilities in dependencies"
+  issue-label:
+    description: "label added to the tracking issue"
+    required: false
+    default: "security"
+  github-token:
+    description: "token used to read and write issues, requires issues:write"
+    required: false
+    default: ${{ github.token }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Install govulncheck
+      shell: bash
+      env:
+        GOVULNCHECK_VERSION: ${{ inputs.govulncheck-version }}
+      run: go install "golang.org/x/vuln/cmd/govulncheck@${GOVULNCHECK_VERSION:-latest}"
+
+    - name: Run govulncheck
+      id: scan
+      shell: bash
+      env:
+        GO_TAGS: ${{ inputs.go-tags }}
+        PACKAGES: ${{ inputs.packages }}
+      run: |
+        set -uo pipefail
+        log="$RUNNER_TEMP/govulncheck.log"
+        scan() {
+          if [[ -n "$GO_TAGS" ]]; then
+            govulncheck -tags "$GO_TAGS" "$PACKAGES"
+          else
+            govulncheck "$PACKAGES"
+          fi
+        }
+        scan >"$log" 2>&1
+        code=$?
+        cat "$log"
+        {
+          echo "log=$log"
+          case "$code" in
+            0) echo "result=clean" ;;
+            3) echo "result=vulnerable" ;;
+            *) echo "result=error" ;;
+          esac
+        } >>"$GITHUB_OUTPUT"
+
+    - name: Create or update tracking issue
+      if: steps.scan.outputs.result == 'vulnerable' && inputs.report-issues == 'true'
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.github-token }}
+        GH_REPO: ${{ github.repository }}
+        ISSUE_TITLE: ${{ inputs.issue-title }}
+        ISSUE_LABEL: ${{ inputs.issue-label }}
+        SCAN_LOG: ${{ steps.scan.outputs.log }}
+        SERVER_URL: ${{ github.server_url }}
+        REPOSITORY: ${{ github.repository }}
+        RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        EVENT_NAME: ${{ github.event_name }}
+        REF_NAME: ${{ github.ref_name }}
+        SHA: ${{ github.sha }}
+      run: |
+        set -euo pipefail
+        gh label create "$ISSUE_LABEL" --force \
+          --description "reported by govulncheck" --color "b60205" >/dev/null 2>&1 || true
+
+        body="$RUNNER_TEMP/govulncheck-issue.md"
+        {
+          echo '```'
+          cat "$SCAN_LOG"
+          echo '```'
+          echo
+          echo "Workflow run: $RUN_URL"
+          echo "Event: \`$EVENT_NAME\`"
+          echo "Branch: [\`$REF_NAME\`]($SERVER_URL/$REPOSITORY/tree/$REF_NAME)"
+          echo "Commit: [\`$SHA\`]($SERVER_URL/$REPOSITORY/commit/$SHA)"
+          echo
+          echo "<sup><i>Auto-reported by govulncheck</i></sup>"
+        } >"$body"
+
+        number=$(gh issue list --state all --limit 100 --json number,title \
+          -q 'map(select(.title == env.ISSUE_TITLE)) | max_by(.number) | .number // empty')
+        if [[ -z "$number" ]]; then
+          gh issue create --title "$ISSUE_TITLE" --body-file "$body" --label "$ISSUE_LABEL"
+        else
+          gh issue reopen "$number" >/dev/null 2>&1 || true
+          gh issue edit "$number" --body-file "$body" --add-label "$ISSUE_LABEL"
+        fi
+
+    - name: Close tracking issue
+      if: steps.scan.outputs.result == 'clean' && inputs.report-issues == 'true'
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.github-token }}
+        GH_REPO: ${{ github.repository }}
+        ISSUE_TITLE: ${{ inputs.issue-title }}
+        RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+      run: |
+        set -euo pipefail
+        numbers=$(gh issue list --state open --limit 100 --json number,title \
+          -q '.[] | select(.title == env.ISSUE_TITLE) | .number')
+        for number in $numbers; do
+          gh issue close "$number" --reason completed \
+            --comment "govulncheck reports no known vulnerabilities any more: $RUN_URL"
+        done
+
+    - name: Fail when govulncheck does not pass
+      if: steps.scan.outputs.result != 'clean'
+      shell: bash
+      run: exit 1
