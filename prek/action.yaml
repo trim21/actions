@@ -24,8 +24,10 @@ runs:
 
     - uses: actions/cache@v6
       with:
-        path: ~/.cache/prek
-        key: prek-1-${{ hashFiles('.pre-commit-config.yaml') }}
+        path: |
+          ~/.cache/prek
+          ~/.cache/dprint
+        key: prek-2-${{ hashFiles('.pre-commit-config.yaml') }}
 
     - uses: astral-sh/setup-uv@v10.3.3
       with:
