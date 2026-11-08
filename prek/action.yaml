@@ -32,6 +32,8 @@ runs:
         # 和调用方自己的 setup-uv 区分缓存 key：这里不会执行 uv sync，
         # 用默认 key 会先占住一个空缓存，调用方那边就再也存不进真正的缓存了。
         cache-suffix: prek
+        cache-dependency-glob: |
+          .pre-commit-config.yaml
 
     - name: Run prek
       shell: bash
